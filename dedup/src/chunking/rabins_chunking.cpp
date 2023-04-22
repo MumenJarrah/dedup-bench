@@ -27,6 +27,12 @@ Rabins_Chunking::Rabins_Chunking(const Config &config) {
     window_size = config.get_rabinc_window_size();
 }
 
+Rabins_Chunking::~Rabins_Chunking() {
+    if (inbuf != nullptr) {
+        free(inbuf);
+    }
+}
+
 void Rabins_Chunking::reset_stream() {
     inbuf_data_size = 0;
     block_size = 0;
