@@ -201,6 +201,7 @@ void Rabins_Chunking::chunk_stream(std::vector<File_Chunk> &result,
             File_Chunk new_chunk(block_size);
             memccpy(new_chunk.get_data(), block_addr, 0, block_size);
             result.push_back(new_chunk);
+            r_hash->fingerprint = 0;
         }
         if (rc) {
             assert(rc == EOF);
