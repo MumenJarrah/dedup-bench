@@ -28,7 +28,7 @@ Rabins_Chunking::Rabins_Chunking(const Config &config) {
 
 Rabins_Chunking::~Rabins_Chunking() {
     if (inbuf != nullptr) {
-        free(inbuf);
+        delete[] inbuf;
     }
 }
 
@@ -54,8 +54,8 @@ void Rabins_Chunking::init() {
 }
 
 size_t Rabins_Chunking::rp_stream_read(unsigned char *dst, size_t size) {
-    stream.read((char*)dst, size);
-    size_t count = stream.gcount();
+    stream->read((char*)dst, size);
+    size_t count = stream->gcount();
     error = 0;
     if (count == 0) {
         error = EOF;
@@ -157,7 +157,9 @@ int Rabins_Chunking::rp_block_next() {
 }
 
 std::vector<File_Chunk> Rabins_Chunking::chunk_file(std::string file_path) {
-    stream.open(file_path, std::ios::binary);
+    std::ifstream file;
+    file.open(file_path, std::ios::binary);
+    stream = &file;
 
     // prepare the stream for the new file
     reset_stream();
@@ -177,7 +179,8 @@ std::vector<File_Chunk> Rabins_Chunking::chunk_file(std::string file_path) {
             break;
         }
     }
-    stream.close();
+    file.close();
+    stream = nullptr;
     for (File_Chunk ch : file_chunks) {
         ch.print();
     }
@@ -186,29 +189,24 @@ std::vector<File_Chunk> Rabins_Chunking::chunk_file(std::string file_path) {
 
 void Rabins_Chunking::chunk_stream(std::vector<File_Chunk> &result,
                                    std::istream &stream) {
+    this->stream = &stream;
+    // prepare the stream for the new file
+    reset_stream();
+    // reset the hash function
+    r_hash->init(window_size);
+
+    while (true) {
+        int rc = rp_block_next();
+        if (rc == 0) {
+            File_Chunk new_chunk(block_size);
+            memccpy(new_chunk.get_data(), block_addr, 0, block_size);
+            result.push_back(new_chunk);
+        }
+        if (rc) {
+            assert(rc == EOF);
+            break;
+        }
+    }
+    this->stream = nullptr;
     return;
-
-    // FILE *stream = fopen(file_path.c_str(), "rb");
-    // if (!stream) {
-    //     error = errno;
-    // }
-    // // prepare the stream for the new file
-    // reset_stream();
-    // // reset the hash function
-    // r_hash->init(window_size);
-
-    // while (true) {
-    //     int rc = rp_block_next();
-    //     if (rc == 0) {
-    //         File_Chunk new_chunk(block_size);
-    //         memccpy(new_chunk.get_data(), block_addr, 0, block_size);
-    //         file_chunks.push_back(new_chunk);
-    //     }
-    //     if (rc) {
-    //         assert(rc == EOF);
-    //         break;
-    //     }
-    // }
-
-    // return file_chunks;
 }

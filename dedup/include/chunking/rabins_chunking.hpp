@@ -65,7 +65,7 @@ class Rabins_Chunking : public virtual Chunking_Technique {
     unsigned char *block_addr;  // starting address of current block
     size_t block_size;          // size of the current block
 
-    std::ifstream stream;
+    std::istream *stream;
 
     Rabins_Hashing *r_hash;
 
