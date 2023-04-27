@@ -253,7 +253,7 @@ void Rabins_Chunking::chunk_stream(std::vector<File_Chunk> &result,
     // 40 MiB buffer
     rabin_init();
     // large buffer to increase dedup ratio as last chunk will be incomplete 
-    const uint64_t BUFFER_SIZE = 40*1024*1024;
+    const uint64_t BUFFER_SIZE = 2*40*1024*1024;
     std::unique_ptr<char[]> buf_ptr = std::make_unique<char[]>(BUFFER_SIZE);
     char* const buf = buf_ptr.get();
     size_t bytes = 0;
